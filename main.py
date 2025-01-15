@@ -1,47 +1,54 @@
 import gradio as gr
 
-# ฟังก์ชันโหลดโมเดล (แก้ไขตามที่จำเป็น)
-def load_model():
-    return "your_model"
+def chat_with_model(prompt, history):
+    # สร้างข้อความตอบกลับจากโมเดล
+    response = f"Model Response to: {prompt}"
+    history.append((prompt, response))
+    return history, ""
 
-model = load_model()
+# กำหนด Custom CSS
+custom_css = """
+#chatbox {
+    background-color: #f0f0f0;
+}
 
-# ฟังก์ชันสนทนา
-def chat(user_input, chat_history):
-    """
-    รับข้อความจากผู้ใช้และประวัติการสนทนา แล้วตอบกลับ
-    """
-    chat_history = chat_history or []  # เริ่มประวัติสนทนาใหม่ถ้ายังไม่มี
-    chat_history.append(("User", user_input))  # เพิ่มข้อความผู้ใช้ในประวัติสนทนา
+#chatbox .user {
+    background-color: #ffa07a !important;  /* สีส้มสำหรับ User */
+    padding: 10px;
+    border-radius: 10px;
+    color: #000000 !important;  /* สีตัวอักษรเป็นสีดำ */
+}
 
-    # ใช้โมเดลสร้างคำตอบ
-    model_response = f"Model Response to: {user_input}"  # เปลี่ยนเป็นคำตอบจากโมเดลของคุณ
-    chat_history.append(("Bot", model_response))  # เพิ่มคำตอบในประวัติสนทนา
+#chatbox .bot {
+    color: white !important;/* สีตัวอักษรเป็นสีดำ */
+    background-color: #404040 !important;    /* สีขาวสำหรับ Bot */
+    padding: 10px;
+    border-radius: 10px;
+}
+"""
 
-    return chat_history, chat_history
+with gr.Blocks(css=custom_css) as demo:
+    gr.Markdown("# CDTI FDT Chat")
+    
+    chatbot = gr.Chatbot(
+        label="Chat History",
+        elem_id="chatbox",
+        bubble_full_width=False,  # ทำให้ bubble ไม่เต็มความกว้าง
+    )
+    state = gr.State([])
 
-# สร้าง UI Gradio
-with gr.Blocks() as demo:
-    gr.Markdown("## CDTI FDT Chat")
-
-    # ส่วนแสดงประวัติการสนทนา
-    chatbox = gr.Chatbot(label="Chat History")  # ไม่มี .style()
-
-    # ช่องสำหรับเขียนข้อความและปุ่มส่ง
-    with gr.Row():
-        user_input = gr.Textbox(
-            show_label=False, placeholder="Type your message here..."
+    with gr.Column():
+        input_box = gr.Textbox(
+            placeholder="Type your message here...", 
+            label="Your Input",
+            elem_id="input_box",
         )
-        btn_submit = gr.Button("Send")
+        send_button = gr.Button("Send", elem_id="send_button")
 
-    # สถานะสำหรับเก็บประวัติการสนทนา
-    chat_history = gr.State()
+    send_button.click(
+        fn=chat_with_model,
+        inputs=[input_box, state],
+        outputs=[chatbot, input_box]
+    )
 
-    # ผูกปุ่มส่งกับฟังก์ชันสนทนา
-    btn_submit.click(chat, inputs=[user_input, chat_history], outputs=[chatbox, chat_history])
-
-    # รองรับการกด Enter เพื่อส่งข้อความ
-    user_input.submit(chat, inputs=[user_input, chat_history], outputs=[chatbox, chat_history])
-
-# เปิดใช้งานแอป
 demo.launch()
