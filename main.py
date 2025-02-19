@@ -30,13 +30,25 @@ def chat_with_model(prompt, history, selected_option):
     return history, ""
 
 def chat_with_model_history(prompt, history, selected_option):
-    contextual_vector = Chroma(persist_directory=context_data, embedding_function=OpenAIEmbeddings(), collection_name=f"{selected_option}")
-    retriever = contextual_vector.as_retriever(search_kwargs={"k": 3})
+    dynamic_doc = ["academic_calendar", "student_activities"]
 
-    answer, _ = model.generate_answer_api_with_history(prompt, retriever=retriever)
+    if selected_option in dynamic_doc:
+        with open("/home/s6410301020/SeniorProject/FDT_cdti_Chat/digital_doc/baseline.md", "r") as file:
+            contexts = file.read()
+        print(contexts)
+        answer, _ = model.generate_answer_api_dynamic_with_history(prompt, contexts)
+        response = f"[{selected_option}] {answer.content}]"
 
-    # Include the selected dropdown option in the response
-    response = f"[{selected_option}] {answer["answer"]}"
+    else:
+        contextual_vector = Chroma(persist_directory=context_data, embedding_function=OpenAIEmbeddings(), collection_name=f"{selected_option}")
+        retriever = contextual_vector.as_retriever(search_kwargs={"k": 3})
+
+        answer, _ = model.generate_answer_api_with_history(prompt, retriever=retriever)
+
+        # Include the selected dropdown option in the response
+        response = f"[{selected_option}] {answer["answer"]}"
+
+
     history.append((prompt, response))
     return history, ""
 
@@ -72,11 +84,11 @@ with gr.Blocks(css=custom_css) as demo:
     gr.Markdown("# CDTI FDT Chat")
 
     with gr.Row():
-        chatbot = gr.Chatbot(
-            label="Chat History",
-            elem_id="chatbox",
-            bubble_full_width=False,
-        )
+        # chatbot = gr.Chatbot(
+        #     label="Chat History",
+        #     elem_id="chatbox",
+        #     bubble_full_width=False,
+        # )
 
         chatbot_history = gr.Chatbot(
             label="Chat History",
@@ -84,21 +96,21 @@ with gr.Blocks(css=custom_css) as demo:
             bubble_full_width=False,
         )
 
-    state1 = gr.State([])
+    # state1 = gr.State([])
     state2 = gr.State([])
 
     with gr.Row():
-        input_box1 = gr.Textbox(
-            placeholder="Type your message here...", 
-            label="Your Input",
-            elem_id="input_box",
-        )
+        # input_box1 = gr.Textbox(
+        #     placeholder="Type your message here...", 
+        #     label="Your Input",
+        #     elem_id="input_box",
+        # )
 
-        dropdown1 = gr.Dropdown(
-            choices=["course", "capital", "general"],
-            label="Select an Option",
-            elem_id="dropdown"
-        )
+        # dropdown1 = gr.Dropdown(
+        #     choices=["course", "capital", "general", "academic_calendar", "student_activities"],
+        #     label="Select an Option",
+        #     elem_id="dropdown"
+        # )
         
 
         input_box2 = gr.Textbox(
@@ -108,19 +120,19 @@ with gr.Blocks(css=custom_css) as demo:
         )
 
         dropdown2 = gr.Dropdown(
-            choices=["course", "capital", "general"],
+            choices=["course", "capital", "general", "academic_calendar", "student_activities"],
             label="Select an Option",
             elem_id="dropdown2"
         )
         
-    send_button1 = gr.Button("Send_no_history", elem_id="send_button1")
+    # send_button1 = gr.Button("Send_no_history", elem_id="send_button1")
     send_button2 = gr.Button("Send_history", elem_id="send_button/")
 
-    send_button1.click(
-        fn=chat_with_model,
-        inputs=[input_box1, state1, dropdown1],
-        outputs=[chatbot, input_box1]
-    )
+    # send_button1.click(
+    #     fn=chat_with_model,
+    #     inputs=[input_box1, state1, dropdown1],
+    #     outputs=[chatbot, input_box1]
+    # )
 
     send_button2.click(
         fn=chat_with_model_history,
