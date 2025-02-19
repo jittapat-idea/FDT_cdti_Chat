@@ -14,6 +14,8 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnableParallel, RunnablePassthrough
 from langchain_anthropic import ChatAnthropic
 import time
 
@@ -273,4 +275,70 @@ class ContextualRetrieval:
         )
         # response = self.typhoon_api.invoke(messages)
         print(self.store)
+        return response, self.store
+
+    def generate_answer_api_dynamic_with_history(self, query: str, context: str):
+
+        prompt = f"""
+        ### 🔹 **Context (บริบท)**
+        - **คุณเป็นผู้ช่วยหญิง** ในการตอบคำถามสำหรับนักศึกษาในคณะเทคโนโลยีดิจิทัล
+        - คุณต้องให้ข้อมูลที่เข้าใจง่ายและชัดเจน ถ้าคุณไม่ทราบข้อมูล ให้แจ้งให้นักศึกษาติดต่อเจ้าหน้าที่  
+
+        ### 🎯 **Objective (เป้าหมาย)**
+        - คุณต้องตอบคำถามของนักศึกษาโดยใช้ข้อมูลจาก **Context**
+        - คำตอบต้องอยู่ในรูปแบบ **Markdown (.md)**  
+        - ต้องใช้ **หัวข้อ (`###`)**, **ลำดับขั้นตอน (`1.`, `1.1`)**, **ลิงก์ (`[ชื่อ](URL)`)**  
+        - ถ้าไม่ทราบข้อมูล ให้ตอบว่า **"กรุณาติดต่อเจ้าหน้าที่ค่ะ"**  
+
+        ### 🎨 **Style & Tone (รูปแบบและโทนของคำตอบ)**  
+        - ใช้ภาษาที่เป็น **ทางการแต่เข้าใจง่ายและเป็นกันเอง**
+        - ทุกคำตอบต้องลงท้ายด้วย **"ค่ะ"** เพื่อให้เข้ากับบุคลิกของผู้ช่วย  
+        - จัดโครงสร้างคำตอบให้ **เป็นขั้นตอนที่อ่านง่าย**  
+        - **ถ้ามีขั้นตอนย่อย ให้ใช้ลำดับเลขย่อย (1.1, 1.2)**  
+        - **ถ้ามีลิงก์ ให้แสดงในรูปแบบ Markdown**  
+
+        ### 👥 **Audience (กลุ่มเป้าหมาย)**  
+        - นักศึกษาของคณะเทคโนโลยีดิจิทัล  
+
+        ### 📜 **Response (รูปแบบคำตอบที่ต้องการ)**
+        ```md
+        ### 📌 [หัวข้อของคำตอบ]
+
+        [รายละเอียดของคำตอบ]
+
+        📌 **หมายเหตุ:** [ข้อมูลเพิ่มเติม ถ้ามี]  
+        กรุณาติดต่อเจ้าหน้าที่ค่ะ  
+        ---
+        ### **เอกสารที่จะต้องนำคำตอบมาตอบ**
+        {context}
+        """
+
+        qa_prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", prompt),
+            ("human", "{input}"),
+        ]
+        )
+        
+        conversation_chain = qa_prompt | self.typhoon_api
+
+        def get_session_history(session_id: str) -> BaseChatMessageHistory:
+            if session_id not in self.store:
+                self.store[session_id] = ChatMessageHistory()
+            return self.store[session_id]
+        
+        conversational_rag_chain = RunnableWithMessageHistory(
+            conversation_chain,
+            get_session_history,
+            input_messages_key="input",
+            history_messages_key="chat_history",
+        )
+
+        response = conversational_rag_chain.invoke(
+            {"input": query},
+            config={"configurable": {"session_id": "abc123"}
+            }, 
+        )
+
+        # print(self.store)
         return response, self.store
