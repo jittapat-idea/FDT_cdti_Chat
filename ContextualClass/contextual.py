@@ -17,6 +17,7 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough
 from langchain_anthropic import ChatAnthropic
+from langchain_core.messages import HumanMessage, AIMessage
 import time
 
 from dotenv import dotenv_values
@@ -83,8 +84,9 @@ class ContextualRetrieval:
                 )
     
         self.typhoon_api = ChatOpenAI(base_url='https://api.opentyphoon.ai/v1',
-                            model='typhoon-v2-8b-instruct',
-                            api_key=typhoon_api)
+                            model='typhoon-v2-70b-instruct',
+                            api_key=typhoon_api,
+                            max_tokens=1024)
 
         self.store = {}
         
@@ -216,7 +218,6 @@ class ContextualRetrieval:
         - คุณต้องตอบคำถามของนักศึกษาโดยใช้ข้อมูลจาก **Context**
         - คำตอบต้องอยู่ในรูปแบบ **Markdown (.md)**  
         - ต้องใช้ **หัวข้อ (`###`)**, **ลำดับขั้นตอน (`1.`, `1.1`)**, **ลิงก์ (`[ชื่อ](URL)`)**  
-        - ถ้าไม่ทราบข้อมูล ให้ตอบว่า **"กรุณาติดต่อเจ้าหน้าที่ค่ะ"**  
 
         ### 🎨 **Style & Tone (รูปแบบและโทนของคำตอบ)**  
         - ใช้ภาษาที่เป็น **ทางการแต่เข้าใจง่ายและเป็นกันเอง**
@@ -234,8 +235,6 @@ class ContextualRetrieval:
 
         [รายละเอียดของคำตอบ]
 
-        📌 **หมายเหตุ:** [ข้อมูลเพิ่มเติม ถ้ามี]  
-        กรุณาติดต่อเจ้าหน้าที่ค่ะ  
         ---
         ### **ข้อมูลที่ต้องตอบ**
         {context}
@@ -317,6 +316,7 @@ class ContextualRetrieval:
         qa_prompt = ChatPromptTemplate.from_messages(
         [
             ("system", prompt),
+            MessagesPlaceholder("chat_history"),
             ("human", "{input}"),
         ]
         )
