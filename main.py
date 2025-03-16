@@ -19,9 +19,9 @@ model = ContextualRetrieval()
 
 def chat_with_model(prompt, history, selected_option):
     # Load vectorstores
-    contextual_vector = Chroma(persist_directory=context_data, embedding_function=OpenAIEmbeddings(), collection_name=f"{selected_option}")
+    contextual_vector = Chroma(persist_directory=context_data, embedding_function=OpenAIEmbeddings(), collection_name=f"cdti_doc")
 
-    contextual_vector_results = contextual_vector.similarity_search(prompt, k=3)
+    contextual_vector_results = contextual_vector.similarity_search(prompt, k=6)
     contextual_vector_answer = model.generate_answer_api(prompt, [doc.page_content for doc in contextual_vector_results])
 
     # Include the selected dropdown option in the response
@@ -40,8 +40,8 @@ def chat_with_model_history(prompt, history, selected_option):
         response = f"[{selected_option}] {answer.content}]"
 
     else:
-        contextual_vector = Chroma(persist_directory=context_data, embedding_function=OpenAIEmbeddings(), collection_name=f"{selected_option}")
-        retriever = contextual_vector.as_retriever(search_kwargs={"k": 3})
+        contextual_vector = Chroma(persist_directory=context_data, embedding_function=OpenAIEmbeddings(), collection_name=f"cdti_doc")
+        retriever = contextual_vector.as_retriever(search_kwargs={"k": 6})
 
         answer, _ = model.generate_answer_api_with_history(prompt, retriever=retriever)
 
