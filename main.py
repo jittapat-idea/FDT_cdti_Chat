@@ -50,37 +50,35 @@ def intention(prompt: str):
 def chat_with_model_history(prompt, history):
     dynamic_doc = ["academic_calendar", "student_activities"]
 
-    # intent = intention(prompt=prompt)
-    # print(intent)
-    # if intent in dynamic_doc:
-    #     if intent == "academic_calendar":
-    #         with open("D:\MyProject\FDT_cdti_Chat\doc\doc_test.md", "r") as file:
-    #             contexts = file.read()
-    #         print(contexts)
+    intent = intention(prompt=prompt)
+    print("intent --->", intent)
+    if intent in dynamic_doc:
+        if intent == "student_activities":
+            with open("/home/s6410301020/SeniorProject/FDT_cdti_Chat/doc/dynamic 1.md", "r") as file:
+                contexts = file.read()
+            print(contexts)
 
-    #         system_prompt = DYNAMIC_PROMPT_TEMPLATE(intent=intent, context=contexts)
-    #         answer, _ = model.generate_answer_api_dynamic_with_history(prompt, system_prompt=system_prompt)
-    #         response = f"[{intent}] {answer.content}]"
-    #     else:
-    #         with open("D:\MyProject\FDT_cdti_Chat\doc\doc_test.md", "r") as file:
-    #             contexts = file.read()
-    #         print(contexts)
+            system_prompt = DYNAMIC_PROMPT_TEMPLATE(intent=intent, context=contexts)
+            answer, _ = model.generate_answer_api_dynamic_with_history(prompt, system_prompt=system_prompt)
+            response = f"[{intent}] {answer.content}]"
+        else:
+            with open("/home/s6410301020/SeniorProject/FDT_cdti_Chat/doc/dynamic 2.md", "r") as file:
+                contexts = file.read()
+            print(contexts)
 
-    #         system_prompt = DYNAMIC_PROMPT_TEMPLATE(intent=intent, context=contexts)
-    #         answer, _ = model.generate_answer_api_dynamic_with_history(prompt, system_prompt=system_prompt)
-    #         response = f"[{intent}] {answer.content}]"
+            system_prompt = DYNAMIC_PROMPT_TEMPLATE(intent=intent, context=contexts)
+            answer, _ = model.generate_answer_api_dynamic_with_history(prompt, system_prompt=system_prompt)
+            response = f"[{intent}] {answer.content}]"
 
-    # else:
-    #     system_prompt = RAG_PROMPT_TEMPLATES[intent]
-    #     contextual_vector = Chroma(persist_directory=context_data, embedding_function=OpenAIEmbeddings(), collection_name=f"cdti_doc")
-    #     retriever = contextual_vector.as_retriever(search_kwargs={"k": 6})
+    else:
+        system_prompt = RAG_PROMPT_TEMPLATES[intent]
+        contextual_vector = Chroma(persist_directory=context_data, embedding_function=OpenAIEmbeddings(), collection_name=f"cdti_doc")
+        retriever = contextual_vector.as_retriever(search_kwargs={"k": 4})
 
-    #     answer, _ = model.generate_answer_api_with_history(prompt, retriever=retriever, system_prompt=system_prompt)
+        answer, _ = model.generate_answer_api_with_history(prompt, retriever=retriever, system_prompt=system_prompt)
 
-    #     # Include the selected dropdown option in the response
-    #     response = f"[{intent}] {answer["answer"]}"
-
-    response = "Hello World"
+        # Include the selected dropdown option in the response
+        response = f"[{intent}] {answer["answer"]}"
 
 
     history.append((prompt, response))
@@ -152,11 +150,11 @@ with gr.Blocks(css=custom_css) as demo:
             elem_id="input_box2",
         )
 
-        dropdown2 = gr.Dropdown(
-            choices=["course", "capital", "general", "academic_calendar", "student_activities"],
-            label="Select an Option",
-            elem_id="dropdown2"
-        )
+        # dropdown2 = gr.Dropdown(
+        #     choices=["course", "capital", "general", "academic_calendar", "student_activities"],
+        #     label="Select an Option",
+        #     elem_id="dropdown2"
+        # )
         
     # send_button1 = gr.Button("Send_no_history", elem_id="send_button1")
     send_button2 = gr.Button("Send_history", elem_id="send_button/")
