@@ -10,7 +10,6 @@ venv/
 .venv
 .env
 digital_doc
-doc_Data
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
