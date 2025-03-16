@@ -264,5 +264,5 @@ class ContextualRetrieval:
             }, 
         )
 
-        # print(self.store)
+        print(self.store)
         return response, self.store
