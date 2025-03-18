@@ -15,8 +15,8 @@ config = dotenv_values(".env")
 os.environ["OPENAI_API_KEY"] = config["openai_api"]
 
 # Define directories for vectorstores
-og_data = "./doc_Data/original"
-context_data = "./doc_Data/context"
+# og_data = "./doc_Data/original"
+context_data = "./new_doc_Data/context"
 
 
 
