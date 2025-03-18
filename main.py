@@ -77,6 +77,8 @@ def chat_with_model_history(prompt, history):
 
         answer, _ = model.generate_answer_api_with_history(prompt, retriever=retriever, system_prompt=system_prompt)
 
+        print(answer)
+        
         # Include the selected dropdown option in the response
         response = f"[{intent}] {answer["answer"]}"
 
